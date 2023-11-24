@@ -17,6 +17,30 @@ public class RegistroDoctor implements Serializable {
         registro.add(doctor);
     }
 
+    public int idDisponible(){
+        // Comprobamos si el LinkedHashSet tiene contenido
+        if (registro.isEmpty()) {
+            return 1; // Si no hay doctores, el primer ID disponible es 1
+        }
+
+        int idActual = 1;
+
+        // Iteramos sobre los doctores para encontrar un ID disponible
+        for (Doctor doctor : registro) {
+            // Verificamos si el ID actual coincide con el ID del doctor
+            if (doctor.getId() == idActual) {
+                // Si coincide, incrementamos el ID actual
+                idActual++;
+            } else {
+                // Si no coincide, encontramos un ID disponible
+                return idActual;
+            }
+        }
+
+        // Si todos los IDs estaban ocupados, devolvemos el siguiente ID disponible
+        return idActual;
+    }
+
     //Getter y setter.
     public LinkedHashSet<Doctor> getRegistro() {
         return registro;

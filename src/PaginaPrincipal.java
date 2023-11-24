@@ -12,7 +12,7 @@ import java.util.Vector;
 public class PaginaPrincipal extends JFrame {
 
     private JButton buscarButton;
-    private JTextField textField1;
+    private JTextField txtBuscar;
     private JButton agregarButton;
     private JButton modificarButton;
     private JButton quitarButton;
@@ -120,6 +120,22 @@ public class PaginaPrincipal extends JFrame {
                     JOptionPane.showMessageDialog(PaginaPrincipal.this, "Seleccione al menos un doctor para modificar.",
                             "Advertencia", JOptionPane.WARNING_MESSAGE);
                 }
+            }
+        });
+        agregarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                AgregarDoctor agregar = new AgregarDoctor();
+                agregar.setContentPane(agregar.getMiPanel());
+                agregar.setSize(800, 200);
+                agregar.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                agregar.setVisible(true);
+            }
+        });
+        buscarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
             }
         });
     }
