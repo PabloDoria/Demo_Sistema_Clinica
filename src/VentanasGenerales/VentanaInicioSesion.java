@@ -1,3 +1,5 @@
+package VentanasGenerales;
+
 import javax.swing.*;
 
 public class VentanaInicioSesion {

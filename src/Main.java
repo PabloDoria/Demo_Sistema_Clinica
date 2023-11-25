@@ -7,15 +7,15 @@ public class Main {
 
         RegistroDoctor registro1 = new RegistroDoctor();
         Doctor doctor1 = new Doctor(1, "Juan", "Pérez", "Gómez", "General", "Matutino", "Calle A #123", 1234567890L);
-        Doctor doctor2 = new Doctor(2, "María", "García", "López", "General", "Matutino", "Avenida B #456", 9876543210L);
+        Doctor doctor2 = new Doctor(2, "María", "García", "López", "General", "Vespertino", "Avenida B #456", 9876543210L);
         Doctor doctor3 = new Doctor(3, "Luis", "Rodríguez", "Martínez", "General", "Matutino", "Calle C #789", 5678901234L);
         Doctor doctor4 = new Doctor(4, "Ana", "Martínez", "Hernández", "General", "Matutino", "Avenida D #1011", 4321098765L);
         Doctor doctor5 = new Doctor(5, "Pedro", "Gómez", "Sánchez", "General", "Matutino", "Calle E #1213", 2109876543L);
-        Doctor doctor6 = new Doctor(6, "Sofía", "Hernández", "García", "General", "Matutino", "Avenida F #1415", 1357924680L);
+        Doctor doctor6 = new Doctor(6, "Sofía", "Hernández", "García", "General", "Vespertino", "Avenida F #1415", 1357924680L);
         Doctor doctor7 = new Doctor(7, "Carlos", "López", "Ramírez", "General", "Matutino", "Calle G #1617", 2468013579L);
         Doctor doctor8 = new Doctor(8, "Laura", "Ramírez", "Gómez", "General", "Matutino", "Avenida H #1819", 9870123456L);
         Doctor doctor9 = new Doctor(9, "Javier", "Sánchez", "Rodríguez", "General", "Matutino", "Calle I #2021", 6543210987L);
-        Doctor doctor10 = new Doctor(10, "Isabel", "Gómez", "Pérez", "General", "Matutino", "Avenida J #2223", 3210987654L);
+        Doctor doctor10 = new Doctor(10, "Isabel", "Gómez", "Pérez", "General", "Vespertino", "Avenida J #2223", 3210987654L);
         Doctor doctor11 = new Doctor(11, "Diego", "Martínez", "Sánchez", "General", "Matutino", "Calle K #2425", 7890123456L);
         Doctor doctor12 = new Doctor(12, "Elena", "Ramírez", "Hernández", "General", "Matutino", "Avenida L #2627", 5678901234L);
         Doctor doctor13 = new Doctor(13, "Miguel", "García", "López", "General", "Matutino", "Calle M #2829", 4321098765L);

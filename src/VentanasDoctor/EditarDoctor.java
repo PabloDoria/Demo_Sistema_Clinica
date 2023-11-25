@@ -1,13 +1,14 @@
+package VentanasDoctor;
+
 import DAO.DoctorCRUD;
 import Entidades.Doctor;
 
-import javax.print.Doc;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.LinkedHashSet;
 
-public class EditarDoctor extends JFrame {
+public class EditarDoctor extends JDialog {
     private Doctor doctor = new Doctor();
     private JPanel PanelDoctor;
     private JTextField txtIdDoctor;
@@ -29,8 +30,11 @@ public class EditarDoctor extends JFrame {
     private JButton confirmarCambiosButton;
     private JButton cancelarButton;
 
-    public EditarDoctor() {
-
+    public EditarDoctor(JFrame frame, String titulo, boolean modal) {
+        super(frame, titulo, modal);
+        setSize(1000, 200);
+        add(PanelDoctor);
+        setLocationRelativeTo(frame);
         confirmarCambiosButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -82,15 +86,6 @@ public class EditarDoctor extends JFrame {
         cmbTurno.setSelectedItem(doctor.getTurno());
         txtDireccion.setText(doctor.getDireccion());
         txtCelular.setText(String.valueOf(doctor.getCelular()));
-    }
-
-    public static void main(String[] args) {
-
-        EditarDoctor v = new EditarDoctor();
-        v.setContentPane(v.PanelDoctor);
-        v.setSize(1000, 200);
-        v.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        v.setVisible(true);
     }
 
     private static boolean esCampoVacio(JTextField textField) {

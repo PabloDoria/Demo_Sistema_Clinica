@@ -1,4 +1,6 @@
-package Entidades;
+package Registros;
+
+import Entidades.Cita;
 
 import java.util.Map;
 

@@ -1,3 +1,5 @@
+package VentanasDoctor;
+
 import DAO.DoctorCRUD;
 import Entidades.Doctor;
 import Registros.RegistroDoctor;
@@ -6,7 +8,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class AgregarDoctor extends JFrame{
+public class AgregarDoctor extends JDialog{
     private JLabel lblIdDoctor;
     private JLabel lblNombre;
     private JTextField txtIdDoctor;
@@ -27,7 +29,11 @@ public class AgregarDoctor extends JFrame{
     private JButton cancelarButton;
     private JPanel MiPanel;
 
-    public AgregarDoctor() {
+    public AgregarDoctor(JFrame frame, String titulo, boolean modal) {
+        super(frame, titulo, modal);
+        setSize(800, 200);
+        add(MiPanel);
+        setLocationRelativeTo(frame);
 
         Doctor doctor = new Doctor();
         DoctorCRUD crud = new DoctorCRUD();
@@ -71,10 +77,5 @@ public class AgregarDoctor extends JFrame{
 
     public static void main(String[] args) {
 
-        AgregarDoctor v = new AgregarDoctor();
-        v.setContentPane(v.MiPanel);
-        v.setSize(800, 200);
-        v.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        v.setVisible(true);
     }
 }

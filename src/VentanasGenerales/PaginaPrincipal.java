@@ -1,5 +1,9 @@
+package VentanasGenerales;
+
 import DAO.DoctorCRUD;
 import Entidades.Doctor;
+import VentanasDoctor.AgregarDoctor;
+import VentanasDoctor.EditarDoctor;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -16,10 +20,20 @@ public class PaginaPrincipal extends JFrame {
     private JButton agregarButton;
     private JButton modificarButton;
     private JButton quitarButton;
-    private JTabbedPane tabbedPane1;
-    private JTable table1;
+    private JTabbedPane tbdPaneGeneral;
+    private JTable tblDoctores;
     private JPanel MiPanel;
+    private JTable tblCitas;
+    private JButton BuscarFechaButton;
+    private JComboBox cmbDia;
+    private JComboBox cmbMes;
+    private JComboBox cmbAno;
+    private JScrollPane sclPaneCitas;
+    private JScrollPane sclPaneDoctores;
     private JPanel PanelTabla = new JPanel();
+
+    DoctorCRUD crud = new DoctorCRUD();
+    LinkedHashSet<Doctor> doctores = crud.obtenerRegistro();
 
     public PaginaPrincipal() {
 
@@ -36,25 +50,23 @@ public class PaginaPrincipal extends JFrame {
             }
         };
 
-        table1.setModel(tableModel);
-        table1.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tblDoctores.setModel(tableModel);
+        tblDoctores.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        table1.getSelectionModel().addListSelectionListener(e -> {
-            int selectedRow = table1.getSelectedRow();
+        tblDoctores.getSelectionModel().addListSelectionListener(e -> {
+            int selectedRow = tblDoctores.getSelectedRow();
             if (selectedRow >= 0) {
-                Object idValue = table1.getValueAt(selectedRow, 1);
+                Object idValue = tblDoctores.getValueAt(selectedRow, 1);
                 System.out.println("ID seleccionado: " + idValue);
             }
         });
 
-        DoctorCRUD crud = new DoctorCRUD();
-        LinkedHashSet<Doctor> doctores = crud.obtenerRegistro();
         llenarTabla(tableModel, doctores);
 
         // Agregar ActionListener al checkbox en la columna 0 (primer columna)
-        TableColumn checkboxColumn = table1.getColumnModel().getColumn(0);
-        checkboxColumn.setCellEditor(table1.getDefaultEditor(Boolean.class));
-        checkboxColumn.setCellRenderer(table1.getDefaultRenderer(Boolean.class));
+        TableColumn checkboxColumn = tblDoctores.getColumnModel().getColumn(0);
+        checkboxColumn.setCellEditor(tblDoctores.getDefaultEditor(Boolean.class));
+        checkboxColumn.setCellRenderer(tblDoctores.getDefaultRenderer(Boolean.class));
         JCheckBox checkBox = new JCheckBox();
         checkBox.setHorizontalAlignment(JCheckBox.CENTER);
         checkboxColumn.setCellEditor(new DefaultCellEditor(checkBox));
@@ -63,9 +75,9 @@ public class PaginaPrincipal extends JFrame {
         checkBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int selectedRow = table1.getSelectedRow();
+                int selectedRow = tblDoctores.getSelectedRow();
                 if (selectedRow >= 0) {
-                    Boolean isChecked = (Boolean) table1.getValueAt(selectedRow, 0);
+                    Boolean isChecked = (Boolean) tblDoctores.getValueAt(selectedRow, 0);
 
                     // Verificar si la casilla se ha marcado
                     if (!isChecked) {
@@ -73,9 +85,6 @@ public class PaginaPrincipal extends JFrame {
                         Doctor selectedDoctor = getDoctorFromRow(selectedRow, doctores);
 
                         System.out.println("Doctor seleccionado: " + selectedDoctor.getNombre());
-                    } else {
-                        // Aquí puedes manejar la lógica cuando la casilla se desmarca
-                        // Por ejemplo, cerrar la ventana de edición si ya está abierta.
                     }
                 }
             }
@@ -89,32 +98,24 @@ public class PaginaPrincipal extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // Verificar si al menos una casilla está seleccionada
                 boolean alMenosUnaSeleccionada = false;
-                for (int i = 0; i < table1.getRowCount(); i++) {
-                    if ((Boolean) table1.getValueAt(i, 0)) {
+                for (int i = 0; i < tblDoctores.getRowCount(); i++) {
+                    if ((Boolean) tblDoctores.getValueAt(i, 0)) {
                         alMenosUnaSeleccionada = true;
                         break;
                     }
                 }
 
                 if (alMenosUnaSeleccionada) {
-                    int selectedRow = table1.getSelectedRow();
+                    int selectedRow = tblDoctores.getSelectedRow();
                     // Llamar a la función de modificación en otra ventana
                     System.out.println("Modificando doctores seleccionados...");
                     Doctor selectedDoctor = getDoctorFromRow(selectedRow, doctores);
                     System.out.println(selectedDoctor.getNombre());
-                    EditarDoctor edicion = new EditarDoctor();
-                    edicion.setDoctor(selectedDoctor);
-                    edicion.setContentPane(edicion.getPanelDoctor());
-                    edicion.setSize(1000, 200);
-                    edicion.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                    edicion.setVisible(true);
 
+                    abrirDialogoEditarDoctor(selectedDoctor);
                     vaciarTabla(tableModel);
-
-                    DoctorCRUD crudo = new DoctorCRUD();
-                    LinkedHashSet<Doctor> doctoress = crudo.obtenerRegistro();
-
-                    llenarTabla(tableModel, doctoress);
+                    actualizarDoctores();
+                    llenarTabla(tableModel, doctores);
 
                 } else {
                     JOptionPane.showMessageDialog(PaginaPrincipal.this, "Seleccione al menos un doctor para modificar.",
@@ -125,24 +126,58 @@ public class PaginaPrincipal extends JFrame {
         agregarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                AgregarDoctor agregar = new AgregarDoctor();
-                agregar.setContentPane(agregar.getMiPanel());
-                agregar.setSize(800, 200);
-                agregar.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                agregar.setVisible(true);
+                abrirDialogoAgregarDoctor();
+                actualizarDoctores();
+                vaciarTabla(tableModel);
+                llenarTabla(tableModel, doctores);
             }
         });
         buscarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                Doctor resultado = crud.buscarDoctorId(Integer.parseInt(txtBuscar.getText()));
+                if(resultado==null){
+                    JOptionPane.showMessageDialog(PaginaPrincipal.this, "El ID que busca no esta relacionado con ningún doctor.",
+                            "Advertencia", JOptionPane.WARNING_MESSAGE);
+                } else {
+                    abrirDialogoEditarDoctor(resultado);
+                }
+            }
+        });
+        quitarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                boolean alMenosUnaSeleccionada = false;
+                for (int i = 0; i < tblDoctores.getRowCount(); i++) {
+                    if ((Boolean) tblDoctores.getValueAt(i, 0)) {
+                        alMenosUnaSeleccionada = true;
+                        break;
+                    }
+                }
 
+                if (alMenosUnaSeleccionada) {
+                    int selectedRow = tblDoctores.getSelectedRow();
+                    // Llamar a la función de modificación en otra ventana
+                    System.out.println("Modificando doctores seleccionados...");
+                    Doctor selectedDoctor = getDoctorFromRow(selectedRow, doctores);
+                    System.out.println(selectedDoctor.getNombre());
+
+                    doctores.remove(selectedDoctor);
+                    crud.insertarDoctor(doctores);
+                    vaciarTabla(tableModel);
+                    llenarTabla(tableModel, doctores);
+
+                } else {
+                    JOptionPane.showMessageDialog(PaginaPrincipal.this, "Seleccione al menos un doctor para modificar.",
+                            "Advertencia", JOptionPane.WARNING_MESSAGE);
+                }
             }
         });
     }
 
     private Doctor getDoctorFromRow(int row, LinkedHashSet<Doctor> doctores) {
         // Obtener el ID del doctor seleccionado
-        Object idValue = table1.getValueAt(row, 1);
+        Object idValue = tblDoctores.getValueAt(row, 1);
         int selectedId = Integer.parseInt(idValue.toString());
 
         // Buscar el doctor en la colección
@@ -152,6 +187,17 @@ public class PaginaPrincipal extends JFrame {
             }
         }
         return null; // Devolver null si no se encuentra el doctor (deberías manejar este caso según tus necesidades)
+    }
+
+    private void abrirDialogoAgregarDoctor() {
+        AgregarDoctor dialogo = new AgregarDoctor(this, "Agregar", true);
+        dialogo.setVisible(true);
+    }
+
+    private void abrirDialogoEditarDoctor(Doctor doctor) {
+        EditarDoctor dialogo = new EditarDoctor(this, "Editar", true);
+        dialogo.setDoctor(doctor);
+        dialogo.setVisible(true);
     }
 
     private void llenarTabla(DefaultTableModel tableModel, LinkedHashSet<Doctor> doctores) {
@@ -168,6 +214,11 @@ public class PaginaPrincipal extends JFrame {
             row.add(doctor.getCelular());
             tableModel.addRow(row);
         }
+    }
+
+    private void actualizarDoctores(){
+        DoctorCRUD crud = new DoctorCRUD();
+        doctores = crud.obtenerRegistro();
     }
 
     private void vaciarTabla(DefaultTableModel tableModel) {
