@@ -58,7 +58,7 @@ public class EditarDoctor extends JDialog {
                         }
                     }
 
-                    crud.insertarDoctor(registro);
+                    crud.insertarRegistro(registro);
 
                     dispose();
 

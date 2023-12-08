@@ -1,9 +1,23 @@
 package VentanasGenerales;
 
+import DAO.CitaCRUD;
 import DAO.DoctorCRUD;
+import DAO.PacienteCRUD;
+import Entidades.Cita;
 import Entidades.Doctor;
+import Entidades.Paciente;
+import Registros.RegistroCita;
+import Registros.RegistroDoctor;
+import Registros.RegistroPaciente;
+import VentanasCita.AgregarCita;
+import VentanasCita.EditarCita;
 import VentanasDoctor.AgregarDoctor;
 import VentanasDoctor.EditarDoctor;
+import VentanasGenerales.Paneles.PanelCitas;
+import VentanasGenerales.Paneles.PanelDoctores;
+import VentanasGenerales.Paneles.PanelPacientes;
+import VentanasPaciente.AgregarPaciente;
+import VentanasPaciente.EditarPaciente;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -15,178 +29,237 @@ import java.util.Vector;
 
 public class PaginaPrincipal extends JFrame {
 
+    private String tipoUsuarioActual;
     private JButton buscarButton;
     private JTextField txtBuscar;
     private JButton agregarButton;
     private JButton modificarButton;
     private JButton quitarButton;
     private JTabbedPane tbdPaneGeneral;
-    private JTable tblDoctores;
     private JPanel MiPanel;
-    private JTable tblCitas;
-    private JButton BuscarFechaButton;
-    private JComboBox cmbDia;
-    private JComboBox cmbMes;
-    private JComboBox cmbAno;
-    private JScrollPane sclPaneCitas;
-    private JScrollPane sclPaneDoctores;
     private JPanel PanelTabla = new JPanel();
+    private int selectedIndex = tbdPaneGeneral.getSelectedIndex();
 
     DoctorCRUD crud = new DoctorCRUD();
+    CitaCRUD citaCRUD = new CitaCRUD();
+    PacienteCRUD crudPaciente = new PacienteCRUD();
+    CitaCRUD crudCita = new CitaCRUD();
     LinkedHashSet<Doctor> doctores = crud.obtenerRegistro();
+    LinkedHashSet<Paciente> pacientes = crudPaciente.obtenerRegistro();
+    LinkedHashSet<Cita> citas = citaCRUD.obtenerRegistro();
 
-    public PaginaPrincipal() {
+    RegistroDoctor registro = new RegistroDoctor();
 
-        DefaultTableModel tableModel = new DefaultTableModel(
-                new Object[]{"", "ID", "Nombre", "Apellido materno", "Apellido paterno", "Especialidad", "Turno", "Dirección", "Celular"}, 0) {
-            @Override
-            public Class<?> getColumnClass(int columnIndex) {
-                return columnIndex == 0 ? Boolean.class : Object.class;
-            }
+    RegistroPaciente registroPaciente = new RegistroPaciente();
 
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return column == 0;
-            }
-        };
+    RegistroCita registroCita = new RegistroCita();
 
-        tblDoctores.setModel(tableModel);
-        tblDoctores.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    public PaginaPrincipal(String[] tipoUsuario) {
 
-        tblDoctores.getSelectionModel().addListSelectionListener(e -> {
-            int selectedRow = tblDoctores.getSelectedRow();
-            if (selectedRow >= 0) {
-                Object idValue = tblDoctores.getValueAt(selectedRow, 1);
-                System.out.println("ID seleccionado: " + idValue);
-            }
-        });
+        if(tipoUsuario[0].equals("Invitado")){
+            modificarButton.setEnabled(false);
+            agregarButton.setEnabled(false);
+            quitarButton.setEnabled(false);
+        }
 
-        llenarTabla(tableModel, doctores);
+        PanelDoctores panelDoctores = new PanelDoctores();
+        tbdPaneGeneral.add("Doctores", panelDoctores);
+        // Obtener el índice de la pestaña actualmente seleccionada
 
-        // Agregar ActionListener al checkbox en la columna 0 (primer columna)
-        TableColumn checkboxColumn = tblDoctores.getColumnModel().getColumn(0);
-        checkboxColumn.setCellEditor(tblDoctores.getDefaultEditor(Boolean.class));
-        checkboxColumn.setCellRenderer(tblDoctores.getDefaultRenderer(Boolean.class));
-        JCheckBox checkBox = new JCheckBox();
-        checkBox.setHorizontalAlignment(JCheckBox.CENTER);
-        checkboxColumn.setCellEditor(new DefaultCellEditor(checkBox));
 
-        // Agregar ActionListener al checkbox
-        checkBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int selectedRow = tblDoctores.getSelectedRow();
-                if (selectedRow >= 0) {
-                    Boolean isChecked = (Boolean) tblDoctores.getValueAt(selectedRow, 0);
+        PanelPacientes panelPacientes = new PanelPacientes();
+        tbdPaneGeneral.add("Pacientes",panelPacientes);
 
-                    // Verificar si la casilla se ha marcado
-                    if (!isChecked) {
-                        // Doctor seleccionado
-                        Doctor selectedDoctor = getDoctorFromRow(selectedRow, doctores);
-
-                        System.out.println("Doctor seleccionado: " + selectedDoctor.getNombre());
-                    }
-                }
-            }
-        });
-
+        PanelCitas panelCitas = new PanelCitas();
+        tbdPaneGeneral.add("Citas",panelCitas);
 
 
         // Agregar ActionListener al botón "Modificar"
         modificarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Verificar si al menos una casilla está seleccionada
-                boolean alMenosUnaSeleccionada = false;
-                for (int i = 0; i < tblDoctores.getRowCount(); i++) {
-                    if ((Boolean) tblDoctores.getValueAt(i, 0)) {
-                        alMenosUnaSeleccionada = true;
-                        break;
+                int index = tbdPaneGeneral.getSelectedIndex();
+
+                if(index==0){
+                    if (panelDoctores.getDoctorSeleccionado() != null) {
+                        // Llamar a la función de modificación en otra ventana
+                        System.out.println("Modificando doctores seleccionados...");
+
+                        abrirDialogoEditarDoctor(panelDoctores.getDoctorSeleccionado());
+                        panelDoctores.setDoctorSeleccionado(null);
+                        panelDoctores.llenarTabla();
+                    }
+
+                    else {
+                        JOptionPane.showMessageDialog(PaginaPrincipal.this, "Seleccione al menos un registro para modificar.",
+                                "Advertencia", JOptionPane.WARNING_MESSAGE);
                     }
                 }
+                if(index==1){
+                    if(panelPacientes.getPacienteSeleccionado() != null){
 
-                if (alMenosUnaSeleccionada) {
-                    int selectedRow = tblDoctores.getSelectedRow();
-                    // Llamar a la función de modificación en otra ventana
-                    System.out.println("Modificando doctores seleccionados...");
-                    Doctor selectedDoctor = getDoctorFromRow(selectedRow, doctores);
-                    System.out.println(selectedDoctor.getNombre());
+                        System.out.println(panelPacientes.getPacienteSeleccionado().getFecha_nacimiento());
+                        abrirDialogoEditarPaciente(panelPacientes.getPacienteSeleccionado());
+                        panelPacientes.setPacienteSeleccionado(null);
+                        panelPacientes.llenarTabla();
+                    } else {
+                        JOptionPane.showMessageDialog(PaginaPrincipal.this, "Seleccione al menos un registro para modificar.",
+                                "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
+                if(index==2){
+                    if(panelCitas.getCitaSeleccionada() != null){
 
-                    abrirDialogoEditarDoctor(selectedDoctor);
-                    vaciarTabla(tableModel);
-                    actualizarDoctores();
-                    llenarTabla(tableModel, doctores);
-
-                } else {
-                    JOptionPane.showMessageDialog(PaginaPrincipal.this, "Seleccione al menos un doctor para modificar.",
-                            "Advertencia", JOptionPane.WARNING_MESSAGE);
+                        System.out.println(panelCitas.getCitaSeleccionada().getId());
+                        abrirDialogoEditarCita(panelCitas.getCitaSeleccionada());
+                        System.out.println(panelCitas.getCitaSeleccionada().getMotivo());
+                        panelCitas.setCitaSeleccionada(null);
+                        panelCitas.llenarTabla();
+                    } else {
+                        JOptionPane.showMessageDialog(PaginaPrincipal.this, "Seleccione al menos un registro para modificar.",
+                                "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    }
                 }
             }
         });
         agregarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                abrirDialogoAgregarDoctor();
-                actualizarDoctores();
-                vaciarTabla(tableModel);
-                llenarTabla(tableModel, doctores);
+                int index = tbdPaneGeneral.getSelectedIndex();
+                if(index == 0){
+                    abrirDialogoAgregarDoctor();
+                    panelDoctores.llenarTabla();
+                }
+                if(index == 1){
+                    abrirDialogoAgregarPaciente();
+                    panelPacientes.llenarTabla();
+                }
+                if(index== 2){
+                    abrirDialogoAgregarCita();
+                    panelCitas.llenarTabla();
+                }
+
             }
         });
         buscarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Doctor resultado = crud.buscarDoctorId(Integer.parseInt(txtBuscar.getText()));
-                if(resultado==null){
-                    JOptionPane.showMessageDialog(PaginaPrincipal.this, "El ID que busca no esta relacionado con ningún doctor.",
-                            "Advertencia", JOptionPane.WARNING_MESSAGE);
-                } else {
-                    abrirDialogoEditarDoctor(resultado);
+                int index = tbdPaneGeneral.getSelectedIndex();
+
+                if(index == 0){
+                    Doctor doctor = crud.buscarPorId(Integer.parseInt(txtBuscar.getText()));
+
+                    if (doctor == null) {
+                        JOptionPane.showMessageDialog(PaginaPrincipal.this, "Ingrese un Id válido.",
+                                "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        abrirDialogoEditarDoctor(doctor);
+                        panelDoctores.llenarTabla();
+                    }
+                }
+                if(index==1){
+                    Paciente paciente = crudPaciente.buscarPorId(Integer.parseInt(txtBuscar.getText()));
+
+                    if (paciente == null) {
+                        JOptionPane.showMessageDialog(PaginaPrincipal.this, "Ingrese un Id válido.",
+                                "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        abrirDialogoEditarPaciente(paciente);
+                        panelPacientes.llenarTabla();
+                    }
+                }
+                if(index==2){
+
+                    Cita cita = crudCita.buscarPorId(Integer.parseInt(txtBuscar.getText()));
+
+                    if (cita == null) {
+                        JOptionPane.showMessageDialog(PaginaPrincipal.this, "Ingrese un Id válido.",
+                                "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        abrirDialogoEditarCita(cita);
+                        panelCitas.llenarTabla();
+                    }
                 }
             }
         });
         quitarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                boolean alMenosUnaSeleccionada = false;
-                for (int i = 0; i < tblDoctores.getRowCount(); i++) {
-                    if ((Boolean) tblDoctores.getValueAt(i, 0)) {
-                        alMenosUnaSeleccionada = true;
-                        break;
+                int index = tbdPaneGeneral.getSelectedIndex();
+
+                if (index == 0) {
+                    Doctor doctor = panelDoctores.getDoctorSeleccionado();
+                    if (doctor != null) {
+                        int confirmacion = JOptionPane.showConfirmDialog(
+                                PaginaPrincipal.this,
+                                "¿Seguro que desea eliminar al doctor " + doctor.getNombre() + "?",
+                                "Confirmar Eliminación",
+                                JOptionPane.YES_NO_OPTION);
+
+                        if (confirmacion == JOptionPane.YES_OPTION) {
+                            // Usuario ha confirmado la eliminación
+                            registro.setRegistro(doctores);
+                            registro.eliminarEntidadPorId(doctor.getId());
+                            crud.insertarRegistro(registro.getRegistro());
+                            panelDoctores.llenarTabla();
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(PaginaPrincipal.this,
+                                "Seleccione un registro para eliminar.",
+                                "Advertencia", JOptionPane.WARNING_MESSAGE);
                     }
                 }
 
-                if (alMenosUnaSeleccionada) {
-                    int selectedRow = tblDoctores.getSelectedRow();
-                    // Llamar a la función de modificación en otra ventana
-                    System.out.println("Modificando doctores seleccionados...");
-                    Doctor selectedDoctor = getDoctorFromRow(selectedRow, doctores);
-                    System.out.println(selectedDoctor.getNombre());
+                if (index == 1) {
+                    Paciente paciente = panelPacientes.getPacienteSeleccionado();
 
-                    doctores.remove(selectedDoctor);
-                    crud.insertarDoctor(doctores);
-                    vaciarTabla(tableModel);
-                    llenarTabla(tableModel, doctores);
+                    if (paciente != null) {
+                        int confirmacion = JOptionPane.showConfirmDialog(
+                                PaginaPrincipal.this,
+                                "¿Seguro que desea eliminar al paciente " + paciente.getNombre() + "?",
+                                "Confirmar Eliminación",
+                                JOptionPane.YES_NO_OPTION);
 
-                } else {
-                    JOptionPane.showMessageDialog(PaginaPrincipal.this, "Seleccione al menos un doctor para modificar.",
-                            "Advertencia", JOptionPane.WARNING_MESSAGE);
+                        if (confirmacion == JOptionPane.YES_OPTION) {
+                            // Usuario ha confirmado la eliminación
+                            registroPaciente.setRegistro(pacientes);
+                            registroPaciente.eliminarEntidadPorId(paciente.getId());
+                            crudPaciente.insertarRegistro(registroPaciente.getRegistro());
+                            panelPacientes.llenarTabla();
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(PaginaPrincipal.this,
+                                "Seleccione un registro para eliminar.",
+                                "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
+
+                if (index == 2) {
+                    Cita cita = panelCitas.getCitaSeleccionada();
+
+                    if (cita != null) {
+                        int confirmacion = JOptionPane.showConfirmDialog(
+                                PaginaPrincipal.this,
+                                "¿Seguro que desea eliminar la cita " + cita.getId() + "?",
+                                "Confirmar Eliminación",
+                                JOptionPane.YES_NO_OPTION);
+
+                        if (confirmacion == JOptionPane.YES_OPTION) {
+                            // Usuario ha confirmado la eliminación
+                            registroCita.setRegistro(citas);
+                            registroCita.eliminarEntidadPorId(cita.getId());
+                            citaCRUD.insertarRegistro(registroCita.getRegistro());
+                            panelCitas.llenarTabla();
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(PaginaPrincipal.this,
+                                "Seleccione un registro para eliminar.",
+                                "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    }
                 }
             }
         });
-    }
 
-    private Doctor getDoctorFromRow(int row, LinkedHashSet<Doctor> doctores) {
-        // Obtener el ID del doctor seleccionado
-        Object idValue = tblDoctores.getValueAt(row, 1);
-        int selectedId = Integer.parseInt(idValue.toString());
-
-        // Buscar el doctor en la colección
-        for (Doctor doctor : doctores) {
-            if (doctor.getId() == selectedId) {
-                return doctor;
-            }
-        }
-        return null; // Devolver null si no se encuentra el doctor (deberías manejar este caso según tus necesidades)
     }
 
     private void abrirDialogoAgregarDoctor() {
@@ -200,36 +273,32 @@ public class PaginaPrincipal extends JFrame {
         dialogo.setVisible(true);
     }
 
-    private void llenarTabla(DefaultTableModel tableModel, LinkedHashSet<Doctor> doctores) {
-        for (Doctor doctor : doctores) {
-            Vector<Object> row = new Vector<>();
-            row.add(false);
-            row.add(doctor.getId());
-            row.add(doctor.getNombre());
-            row.add(doctor.getApellidoP());
-            row.add(doctor.getApellidoM());
-            row.add(doctor.getEspecialidad());
-            row.add(doctor.getTurno());
-            row.add(doctor.getDireccion());
-            row.add(doctor.getCelular());
-            tableModel.addRow(row);
-        }
+    private void abrirDialogoAgregarPaciente(){
+        AgregarPaciente dialogo = new AgregarPaciente(this,"Agregar", true);
+        dialogo.setVisible(true);
     }
 
-    private void actualizarDoctores(){
-        DoctorCRUD crud = new DoctorCRUD();
-        doctores = crud.obtenerRegistro();
+    private void abrirDialogoEditarPaciente(Paciente paciente){
+        EditarPaciente dialogo = new EditarPaciente(this, "Editar",true);
+        dialogo.setPaciente(paciente);
+        dialogo.setVisible(true);
     }
 
-    private void vaciarTabla(DefaultTableModel tableModel) {
-        int rowCount = tableModel.getRowCount();
-        for (int i = rowCount - 1; i >= 0; i--) {
-            tableModel.removeRow(i);
-        }
+    private void abrirDialogoAgregarCita(){
+        AgregarCita dialogo = new AgregarCita(this,"Agregar", true);
+        dialogo.setVisible(true);
+    }
+
+    private void abrirDialogoEditarCita(Cita cita){
+        EditarCita dialogo = new EditarCita(this,"Agregar", true);
+        dialogo.setCita(cita);
+        dialogo.setVisible(true);
+
+
     }
 
     public static void main(String[] args) {
-        PaginaPrincipal v = new PaginaPrincipal();
+        PaginaPrincipal v = new PaginaPrincipal(args);
         v.setContentPane(v.MiPanel);
         v.setSize(1920, 1080);
         v.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

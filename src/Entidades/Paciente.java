@@ -1,5 +1,6 @@
 package Entidades;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 public class Paciente extends Cliente{
@@ -14,7 +15,7 @@ public class Paciente extends Cliente{
 
     // Constructor normal
     public Paciente(int id, String nombre, String apellidoP, String apellidoM, float peso, float estatura,
-                    char tipo_sangre, Date fecha_nacimiento, String direccion, int doctorCabecera,
+                    String tipo_sangre, LocalDate fecha_nacimiento, String direccion, int doctorCabecera,
                     String correo_electronico, int celular) {
         super(id, nombre, apellidoP, apellidoM, peso, estatura, tipo_sangre, fecha_nacimiento);
         this.direccion = direccion;

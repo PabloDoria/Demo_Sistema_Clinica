@@ -49,26 +49,45 @@ public class AgregarDoctor extends JDialog{
         btnGenerarDoctor.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                // Verifica si todos los campos están llenos
+                if (camposLlenos()) {
+                    // Todos los campos están llenos, procede con la creación del doctor
+                    doctor.setNombre(txtNombre.getText());
+                    doctor.setApellidoP(txtApellidoP.getText());
+                    doctor.setApellidoM(txtApellidoM.getText());
+                    doctor.setDireccion(txtDireccion.getText());
+                    doctor.setCelular(Long.parseLong(txtCelular.getText()));
+                    doctor.setTurno((String) cmbTurno.getSelectedItem());
+                    doctor.setEspecialidad((String) cmbEspecialidad.getSelectedItem());
 
-                doctor.setNombre(txtNombre.getText());
-                doctor.setApellidoP(txtApellidoP.getText());
-                doctor.setApellidoM(txtApellidoM.getText());
-                doctor.setDireccion(txtDireccion.getText());
-                doctor.setCelular(Long.parseLong(txtCelular.getText()));
-                doctor.setTurno((String)cmbTurno.getSelectedItem());
-                doctor.setEspecialidad((String)cmbEspecialidad.getSelectedItem());
+                    registro.insertarEntidad(doctor);
+                    crud.insertarRegistro(registro.getRegistro());
 
-
-                registro.insertarDoctor(doctor);
-                crud.insertarDoctor(registro.getRegistro());
-
-                dispose();
+                    dispose();
+                } else {
+                    // Muestra un JOptionPane de advertencia
+                    JOptionPane.showMessageDialog(AgregarDoctor.this,
+                            "Por favor, complete todos los campos.", "Campo Vacío",
+                            JOptionPane.WARNING_MESSAGE);
+                }
             }
         });
+
         cancelarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) { dispose(); }
         });
+    }
+
+    private boolean camposLlenos() {
+        // Verifica si todos los campos están llenos
+        return !txtNombre.getText().isEmpty() &&
+                !txtApellidoP.getText().isEmpty() &&
+                !txtApellidoM.getText().isEmpty() &&
+                !txtDireccion.getText().isEmpty() &&
+                !txtCelular.getText().isEmpty() &&
+                cmbTurno.getSelectedItem() != null &&
+                cmbEspecialidad.getSelectedItem() != null;
     }
 
     public JPanel getMiPanel() {

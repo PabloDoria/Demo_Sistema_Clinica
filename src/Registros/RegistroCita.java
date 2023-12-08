@@ -1,13 +1,10 @@
 package Registros;
-
 import Entidades.Cita;
+import java.io.Serializable;
 
-import java.util.Map;
+public class RegistroCita extends RegistroEntidad<Cita> implements Serializable {
 
-public class RegistroCita {
-    private Map<Integer, Cita> registro;
-
-    public RegistroCita(){
-
+    public RegistroCita() {
+        super();
     }
 }
